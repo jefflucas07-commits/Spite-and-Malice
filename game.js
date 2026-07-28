@@ -48,22 +48,20 @@ function createGame(players) {
       stack: [],
       discards: [[], [], [], []],
     })),
-    center: [[], [], [], []], // each entry is an array of cards; top value = length-based
+    center: [[], [], [], []],
     draw,
-    completed: [], // completed King piles, recycled into draw when empty
+    completed: [],
     currentPlayerIndex: Math.floor(Math.random() * players.length),
     winner: null,
     log: [],
   };
 
-  // Deal 20-card face-down stacks.
   for (const player of state.players) {
     for (let i = 0; i < STACK_SIZE; i++) {
       player.stack.push(state.draw.pop());
     }
   }
 
-  // Deal opening hands and start the first turn.
   for (const player of state.players) {
     drawUpTo(state, player, HAND_SIZE);
   }
@@ -93,12 +91,10 @@ function drawUpTo(state, player, size) {
   }
 }
 
-// The value a card contributes. Jokers are wild (return null -> caller decides).
 function cardValue(card) {
   return card.joker ? null : card.rank;
 }
 
-// Value currently required by a center spot (1..13). Empty spot needs an Ace (1).
 function centerNeeds(pile) {
   return pile.length + 1;
 }
@@ -107,7 +103,6 @@ function currentPlayer(state) {
   return state.players[state.currentPlayerIndex];
 }
 
-// Peek the card referenced by a source without removing it.
 function peekSource(player, source) {
   if (source.type === "hand") return player.hand[source.index] || null;
   if (source.type === "stack") return player.stack[player.stack.length - 1] || null;
@@ -125,7 +120,6 @@ function removeSource(player, source) {
   return null;
 }
 
-// Attempt to play a card from a source onto a center building spot.
 function playToCenter(state, playerId, source, centerIndex) {
   if (state.winner) return { ok: false, error: "Game is over." };
   const player = currentPlayer(state);
@@ -144,7 +138,6 @@ function playToCenter(state, playerId, source, centerIndex) {
     return { ok: false, error: `That spot needs a ${rankLabel(needs)}.` };
   }
 
-  // Commit the move.
   removeSource(player, source);
   const placed = { ...card, assigned: needs };
   pile.push(placed);
@@ -152,19 +145,16 @@ function playToCenter(state, playerId, source, centerIndex) {
   const label = card.joker ? `Joker as ${rankLabel(needs)}` : rankLabel(needs);
   pushLog(state, `${player.name} played ${label} to center.`);
 
-  // Completed a King pile -> clear it and recycle the cards.
   if (needs === 13) {
     state.completed.push(...pile.splice(0, pile.length));
     pushLog(state, `A center pile reached King and cleared.`);
   }
 
-  // Refill immediately if the hand was fully played out.
   if (player.hand.length === 0) {
     drawUpTo(state, player, HAND_SIZE);
     pushLog(state, `${player.name} emptied their hand and drew back up to 5.`);
   }
 
-  // Win check: emptying the 20-card stack wins the game.
   if (player.stack.length === 0) {
     state.winner = player.id;
     pushLog(state, `${player.name} emptied their stack and wins!`);
@@ -173,7 +163,7 @@ function playToCenter(state, playerId, source, centerIndex) {
   return { ok: true };
 }
 
-// Discard a hand card onto one of your own discard piles. This ends the turn.
+// Discard a hand card onto any of your own discard piles unconditionally. Ends turn.
 function discard(state, playerId, handIndex, discardIndex) {
   if (state.winner) return { ok: false, error: "Game is over." };
   const player = currentPlayer(state);
@@ -187,7 +177,6 @@ function discard(state, playerId, handIndex, discardIndex) {
   player.discards[discardIndex].push(card);
   pushLog(state, `${player.name} discarded to pile ${discardIndex + 1} and ended their turn.`);
 
-  // Advance to the next player and refill their hand to 5.
   state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
   drawUpTo(state, currentPlayer(state), HAND_SIZE);
 
@@ -214,7 +203,6 @@ function publicCard(card) {
   };
 }
 
-// Build a per-player view of the game (hides opponent hand contents).
 function serialize(state, viewerId) {
   return {
     winner: state.winner,
@@ -239,6 +227,7 @@ function serialize(state, viewerId) {
         hand: isViewer ? p.hand.map(publicCard) : null,
         discards: p.discards.map((pile) => ({
           top: publicCard(pile[pile.length - 1]),
+          cards: pile.map(publicCard),
           count: pile.length,
         })),
       };
