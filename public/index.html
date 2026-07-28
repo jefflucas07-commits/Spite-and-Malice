@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-app">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f241d" />
+    <title>Spite &amp; Malice</title>
+    <meta name="description" content="A real-time two-player card game of Spite and Malice. Empty your stack before your opponent." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <!-- ===== LOBBY ===== -->
+    <main id="lobby" class="screen active">
+      <div class="lobby-card">
+        <p class="eyebrow">Real-time card duel</p>
+        <h1 class="title">Spite &amp; Malice</h1>
+        <p class="subtitle">Race to empty your 20-card stack. Jokers are wild. First to clear their pile wins.</p>
+
+        <label class="field">
+          <span>Your name</span>
+          <input id="nameInput" type="text" maxlength="16" placeholder="Enter a name" autocomplete="off" />
+        </label>
+
+        <button id="createBtn" class="btn btn-primary">Create a room</button>
+
+        <div class="divider"><span>or join</span></div>
+
+        <div class="join-row">
+          <input id="roomInput" type="text" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" />
+          <button id="joinBtn" class="btn btn-ghost">Join</button>
+        </div>
+
+        <p id="lobbyMsg" class="lobby-msg" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+
+    <!-- ===== WAITING ROOM ===== -->
+    <main id="waiting" class="screen">
+      <div class="lobby-card">
+        <p class="eyebrow">Room ready</p>
+        <h2 class="title small">Invite your opponent</h2>
+        <p class="subtitle">Share this code or link. The match starts automatically when they join.</p>
+
+        <div class="code-display" id="roomCodeDisplay" aria-label="Room code"></div>
+
+        <button id="copyLinkBtn" class="btn btn-primary">Copy invite link</button>
+        <ul id="seatList" class="seat-list" aria-live="polite"></ul>
+        <p id="waitingMsg" class="lobby-msg" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+
+    <!-- ===== GAME ===== -->
+    <main id="game" class="screen">
+      <!-- Opponent -->
+      <section class="player-zone opponent" aria-label="Opponent area">
+        <div class="zone-header">
+          <span class="pname" id="oppName">Opponent</span>
+          <span class="badge" id="oppHand">Hand: 0</span>
+        </div>
+        <div class="zone-row">
+          <div class="pilewrap">
+            <div class="slot" id="oppStack" data-empty="Stack"></div>
+            <span class="slot-label">Stack <b id="oppStackCount">0</b></span>
+          </div>
+          <div class="discards" id="oppDiscards" aria-label="Opponent discard piles"></div>
+        </div>
+      </section>
+
+      <!-- Center -->
+      <section class="center-zone" aria-label="Center building piles">
+        <div class="center-head">
+          <span class="turn-flag" id="turnFlag">Waiting…</span>
+          <span class="badge draw" id="drawCount">Draw: 0</span>
+        </div>
+        <div class="center-piles" id="centerPiles"></div>
+        <p class="hint" id="hint">Build A → K on the center piles.</p>
+      </section>
+
+      <!-- Player -->
+      <section class="player-zone me" aria-label="Your area">
+        <div class="zone-row">
+          <div class="pilewrap">
+            <div class="slot" id="myStack" data-empty="Stack"></div>
+            <span class="slot-label">Stack <b id="myStackCount">0</b></span>
+          </div>
+          <div class="discards" id="myDiscards" aria-label="Your discard piles"></div>
+        </div>
+        <div class="hand" id="myHand" aria-label="Your hand"></div>
+        <div class="zone-header bottom">
+          <span class="pname" id="myName">You</span>
+          <span class="badge" id="myTip">Tap a card, then a target</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== GAME OVER ===== -->
+    <div id="overlay" class="overlay">
+      <div class="overlay-card">
+        <h2 id="overTitle" class="title small">Game over</h2>
+        <p id="overText" class="subtitle"></p>
+        <button id="rematchBtn" class="btn btn-primary">Play again</button>
+      </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/client.js"></script>
+  </body>
+</html>
